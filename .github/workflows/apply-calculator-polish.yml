@@ -1,0 +1,171 @@
+name: Apply calculator polish
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-calculator-polish.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Patch calculator formatting and typewriter
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs')
+
+          const appPath = 'src/app-v6.jsx'
+          let app = fs.readFileSync(appPath, 'utf8')
+
+          const animatedMarker = 'function AnimatedNumber({ value, format = valueToFormat => nf0.format(valueToFormat) }) {'
+          if (!app.includes('function FormattedIntegerInput')) {
+            if (!app.includes(animatedMarker)) throw new Error('AnimatedNumber marker not found')
+            const helpers = `function parseFormattedInteger(input, max = 999999) {
+            const digits = String(input ?? '').replace(/\\D/g, '')
+            if (!digits) return 0
+            return Math.min(max, Number(digits))
+          }
+
+          function formatEditableInteger(value) {
+            const numeric = Number(value) || 0
+            return numeric > 0 ? nf0.format(Math.round(numeric)) : ''
+          }
+
+          function FormattedIntegerInput({ id, value, onChange, min = 0, max = 999999, ariaLabel }) {
+            return <input
+              id={id}
+              className="formatted-number"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              enterKeyHint="next"
+              aria-label={ariaLabel}
+              value={formatEditableInteger(value)}
+              onChange={event => onChange(parseFormattedInteger(event.target.value, max))}
+              onBlur={() => { if (value > 0 && value < min) onChange(min) }}
+            />
+          }
+
+          `
+            app = app.replace(animatedMarker, helpers + animatedMarker)
+          }
+
+          const typewriterRegex = /function Typewriter\(\) \{[\s\S]*?\n\}\n\nfunction Reveal/
+          const newTypewriter = `function Typewriter() {
+            const [phraseIndex, setPhraseIndex] = useState(0)
+            const [cursor, setCursor] = useState(1)
+            const [deleting, setDeleting] = useState(false)
+            const phrase = TYPEWRITER_PHRASES[phraseIndex]
+            const visibleText = phrase.slice(0, Math.max(1, cursor))
+
+            useEffect(() => {
+              const atEnd = cursor >= phrase.length
+              const atStart = cursor <= 1
+              const delay = deleting ? (atStart ? 130 : 38) : (atEnd ? 1450 : 64)
+              const timer = window.setTimeout(() => {
+                if (deleting) {
+                  if (atStart) {
+                    const nextIndex = (phraseIndex + 1) % TYPEWRITER_PHRASES.length
+                    setPhraseIndex(nextIndex)
+                    setCursor(1)
+                    setDeleting(false)
+                  } else {
+                    setCursor(value => Math.max(1, value - 1))
+                  }
+                } else if (atEnd) {
+                  setDeleting(true)
+                } else {
+                  setCursor(value => Math.min(phrase.length, value + 1))
+                }
+              }, delay)
+              return () => window.clearTimeout(timer)
+            }, [cursor, deleting, phrase, phraseIndex])
+
+            return <span className="type-line" aria-label={\`Veja seu projeto solar \${phrase}\`}><span id="typewriter" aria-hidden="true">{visibleText}</span><m.span className="caret" aria-hidden="true" animate={{ opacity:[1,1,0,0,1] }} transition={{ duration:.92, repeat:Infinity, times:[0,.42,.5,.92,1] }} /></span>
+          }
+
+          function Reveal`
+          if (!typewriterRegex.test(app)) throw new Error('Typewriter block not found')
+          app = app.replace(typewriterRegex, newTypewriter)
+
+          const replacements = [
+            [
+              '<input id="consumption" type="number" min="50" max="20000" step="10" value={values.consumption} onChange={event=>patch({consumption:Number(event.target.value)})}/>',
+              '<FormattedIntegerInput id="consumption" value={values.consumption} min={50} max={20000} ariaLabel="Consumo médio mensal em kWh" onChange={consumption=>patch({consumption})}/>'
+            ],
+            [
+              '<input id="bill" type="number" min="50" max="50000" step="10" value={values.bill} onChange={event=>patch({bill:Number(event.target.value)})}/>',
+              '<FormattedIntegerInput id="bill" value={values.bill} min={50} max={50000} ariaLabel="Valor médio mensal da conta em reais" onChange={bill=>patch({bill})}/>'
+            ],
+            [
+              '<input id="roofArea" type="number" min="8" max="5000" value={values.roofArea} onChange={event=>patch({roofArea:Number(event.target.value)})}/>',
+              '<FormattedIntegerInput id="roofArea" value={values.roofArea} min={8} max={5000} ariaLabel="Área útil para módulos em metros quadrados" onChange={roofArea=>patch({roofArea})}/>'
+            ],
+            [
+              "{compactBrl(model.investmentLow)} – {compactBrl(model.investmentHigh).replace('R$ ','')}",
+              '{compactBrl(model.investmentLow)} – {compactBrl(model.investmentHigh)}'
+            ],
+            ['kWh/m².dia', 'kWh/m²/dia']
+          ]
+          for (const [from, to] of replacements) {
+            if (!app.includes(from)) throw new Error(`Expected source fragment not found: ${from.slice(0, 80)}`)
+            app = app.replaceAll(from, to)
+          }
+          fs.writeFileSync(appPath, app)
+
+          const cssPath = 'src/app-v6.css'
+          let css = fs.readFileSync(cssPath, 'utf8')
+          if (!css.includes('.formatted-number{')) {
+            css += '\n.formatted-number{font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:.01em}.input-group .formatted-number{font-size:1.04rem}.type-line{font-variant-ligatures:none}.caret{will-change:opacity}\n'
+          }
+          fs.writeFileSync(cssPath, css)
+
+          const browserPath = 'tests/browser-checks.mjs'
+          let browser = fs.readFileSync(browserPath, 'utf8')
+          if (!browser.includes('async function iphoneCompatibilityTest')) {
+            const marker = 'const browser=await chromium.launch({headless:true})'
+            if (!browser.includes(marker)) throw new Error('Browser test marker not found')
+            const compatibilityTest = `async function iphoneCompatibilityTest(browser){
+            const context=await browser.newContext({viewport:{width:393,height:852},deviceScaleFactor:1,reducedMotion:'reduce'})
+            const page=await context.newPage();page.setDefaultTimeout(8000)
+            try{
+              await page.goto(baseUrl,{waitUntil:'domcontentloaded'});await page.locator('#typewriter').waitFor()
+              const first=((await page.locator('#typewriter').textContent())||'').trim();await page.waitForTimeout(520);const second=((await page.locator('#typewriter').textContent())||'').trim()
+              assert(first.length>0&&second.length>0&&first!==second,\`iphone-393 reduced-motion: typewriter did not advance (\${first} -> \${second})\`)
+              await page.locator('#simulador').scrollIntoViewIfNeeded();await settle(page)
+              await page.locator('#consumption').fill('1250');await page.waitForTimeout(80);assert(await page.locator('#consumption').inputValue()==='1.250','iphone-393: consumption formatting failed')
+              await page.locator('#bill').fill('2345');await page.waitForTimeout(80);assert(await page.locator('#bill').inputValue()==='2.345','iphone-393: currency input formatting failed')
+              console.log('✓ iphone-393 typewriter + pt-BR numeric formatting')
+            }finally{await context.close()}
+          }
+          `
+            browser = browser.replace(marker, compatibilityTest + marker)
+            browser = browser.replace("try{await viewportTest(browser,{width:320,height:700},'mobile-320',true);", "try{await iphoneCompatibilityTest(browser);await viewportTest(browser,{width:320,height:700},'mobile-320',true);")
+          }
+          fs.writeFileSync(browserPath, browser)
+
+          const smokePath = 'tests/react-smoke.mjs'
+          let smoke = fs.readFileSync(smokePath, 'utf8')
+          if (!smoke.includes('FormattedIntegerInput')) {
+            smoke = smoke.replace("[source.includes('function Typewriter'), 'Typewriter component exists'],", "[source.includes('function Typewriter'), 'Typewriter component exists'],\n  [source.includes('function FormattedIntegerInput'), 'pt-BR formatted calculator inputs exist'],\n  [!source.match(/function Typewriter\\(\\)[\\s\\S]*?useReducedMotion/), 'Typewriter is not disabled by iPhone reduced-motion preference'],")
+          }
+          fs.writeFileSync(smokePath, smoke)
+          NODE
+
+      - name: Commit polish
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app-v6.jsx src/app-v6.css tests/browser-checks.mjs tests/react-smoke.mjs
+          git diff --cached --check
+          git commit -m "Polish calculator number formatting and iPhone typewriter"
+          git push
