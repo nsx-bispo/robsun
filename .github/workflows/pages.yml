@@ -42,7 +42,32 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run mobile and desktop browser regression tests
-        run: npm run test:e2e
+        shell: bash
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/robsun-vite.log 2>&1 &
+          SERVER_PID=$!
+          cleanup() {
+            kill "$SERVER_PID" 2>/dev/null || true
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          READY=0
+          for i in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/robsun/ > /dev/null; then
+              READY=1
+              break
+            fi
+            sleep 0.25
+          done
+
+          if [ "$READY" -ne 1 ]; then
+            echo "Vite preview did not become ready"
+            cat /tmp/robsun-vite.log
+            exit 1
+          fi
+
+          npm run test:e2e
 
       - name: Upload visual regression captures
         if: always()
