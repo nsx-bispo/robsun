@@ -1,4 +1,4 @@
-name: Deploy RobSun to GitHub Pages
+name: Deploy RobSun React to GitHub Pages
 
 on:
   push:
@@ -24,11 +24,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Validate JavaScript syntax
-        run: node --check v5.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-      - name: Run site smoke checks
-        run: node tests/smoke.mjs
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run React smoke checks
+        run: node tests/react-smoke.mjs
+
+      - name: Build Vite app
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -36,7 +44,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: '.'
+          path: dist
 
       - name: Deploy to GitHub Pages
         id: deployment
