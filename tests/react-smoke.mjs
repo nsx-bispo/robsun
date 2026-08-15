@@ -12,6 +12,8 @@ const checks = [
   [source.includes('LazyMotion'), 'LazyMotion reduces animation runtime cost'],
   [source.includes('MotionConfig reducedMotion="user"'), 'Global reduced-motion policy exists'],
   [source.includes('function Typewriter'), 'Typewriter component exists'],
+  [source.includes('function FormattedIntegerInput'), 'pt-BR formatted calculator inputs exist'],
+  [!source.match(/function Typewriter\(\)[\s\S]*?useReducedMotion/), 'Typewriter is not disabled by iPhone reduced-motion preference'],
   [source.includes('Math.max(1, cursor)'), 'Typewriter never renders an empty phrase'],
   [source.includes('function SolarCalculator'), 'Solar calculator exists'],
   [source.includes('function SolarRoofScene'), 'Solar scene is componentized'],

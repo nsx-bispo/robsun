@@ -124,6 +124,32 @@ function useMobile() {
   return mobile
 }
 
+function parseFormattedInteger(input, max = 999999) {
+  const digits = String(input ?? '').replace(/\D/g, '')
+  if (!digits) return 0
+  return Math.min(max, Number(digits))
+}
+
+function formatEditableInteger(value) {
+  const numeric = Number(value) || 0
+  return numeric > 0 ? nf0.format(Math.round(numeric)) : ''
+}
+
+function FormattedIntegerInput({ id, value, onChange, min = 0, max = 999999, ariaLabel }) {
+  return <input
+    id={id}
+    className="formatted-number"
+    type="text"
+    inputMode="numeric"
+    autoComplete="off"
+    enterKeyHint="next"
+    aria-label={ariaLabel}
+    value={formatEditableInteger(value)}
+    onChange={event => onChange(parseFormattedInteger(event.target.value, max))}
+    onBlur={() => { if (value > 0 && value < min) onChange(min) }}
+  />
+}
+
 function AnimatedNumber({ value, format = valueToFormat => nf0.format(valueToFormat) }) {
   const reduced = useReducedMotion()
   const raw = useMotionValue(value)
@@ -138,32 +164,36 @@ function AnimatedNumber({ value, format = valueToFormat => nf0.format(valueToFor
 }
 
 function Typewriter() {
-  const reduced = useReducedMotion()
   const [phraseIndex, setPhraseIndex] = useState(0)
-  const [cursor, setCursor] = useState(TYPEWRITER_PHRASES[0].length)
-  const [deleting, setDeleting] = useState(true)
+  const [cursor, setCursor] = useState(1)
+  const [deleting, setDeleting] = useState(false)
   const phrase = TYPEWRITER_PHRASES[phraseIndex]
   const visibleText = phrase.slice(0, Math.max(1, cursor))
 
   useEffect(() => {
-    if (reduced) return undefined
-    const delay = deleting ? (cursor <= 1 ? 140 : 34) : (cursor >= phrase.length ? 1450 : 58)
+    const atEnd = cursor >= phrase.length
+    const atStart = cursor <= 1
+    const delay = deleting ? (atStart ? 130 : 38) : (atEnd ? 1450 : 64)
     const timer = window.setTimeout(() => {
       if (deleting) {
-        if (cursor <= 1) {
+        if (atStart) {
           const nextIndex = (phraseIndex + 1) % TYPEWRITER_PHRASES.length
           setPhraseIndex(nextIndex)
           setCursor(1)
           setDeleting(false)
-        } else setCursor(value => value - 1)
-      } else if (cursor >= phrase.length) {
+        } else {
+          setCursor(value => Math.max(1, value - 1))
+        }
+      } else if (atEnd) {
         setDeleting(true)
-      } else setCursor(value => value + 1)
+      } else {
+        setCursor(value => Math.min(phrase.length, value + 1))
+      }
     }, delay)
     return () => window.clearTimeout(timer)
-  }, [cursor, deleting, phrase, phraseIndex, reduced])
+  }, [cursor, deleting, phrase, phraseIndex])
 
-  return <span className="type-line"><span id="typewriter">{reduced ? TYPEWRITER_PHRASES[0] : visibleText}</span><m.span className="caret" aria-hidden="true" animate={reduced ? { opacity:1 } : { opacity:[1,1,0,0,1] }} transition={{ duration:1, repeat:Infinity, times:[0,.42,.5,.92,1] }} /></span>
+  return <span className="type-line" aria-label={`Veja seu projeto solar ${phrase}`}><span id="typewriter" aria-hidden="true">{visibleText}</span><m.span className="caret" aria-hidden="true" animate={{ opacity:[1,1,0,0,1] }} transition={{ duration:.92, repeat:Infinity, times:[0,.42,.5,.92,1] }} /></span>
 }
 
 function Reveal({ children, className = '', delay = 0, as = 'div', id }) {
@@ -266,7 +296,7 @@ function ResultCard({ values, model, compact = false }) {
       <article><span>Área mínima dos módulos</span><strong>{nf1.format(model.moduleArea)} m²</strong></article>
       <article className="result-highlight"><span>Economia líquida estimada</span><strong>{brl0.format(model.netMonthlySavings)}/mês</strong><small>após premissas simplificadas de compensação</small></article>
       <article><span>Conta residual estimada</span><strong>{brl0.format(model.estimatedBillAfterSolar)}/mês</strong></article>
-      <article><span>Investimento indicativo</span><strong>{compactBrl(model.investmentLow)} – {compactBrl(model.investmentHigh).replace('R$ ','')}</strong></article>
+      <article><span>Investimento indicativo</span><strong>{compactBrl(model.investmentLow)} – {compactBrl(model.investmentHigh)}</strong></article>
       <article><span>Payback simples</span><strong>{model.paybackLow ? `${model.paybackLow.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} – ${model.paybackHigh.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} anos` : '—'}</strong></article>
       <article><span>Área disponível</span><strong className={model.fits ? '' : 'warning-text'}>{model.fits ? 'Compatível' : `Faltam ≈ ${nf1.format(model.moduleArea-model.roofArea)} m²`}</strong></article>
     </div>
@@ -301,8 +331,8 @@ function SolarCalculator() {
   ]
 
   const fields = {
-    1:<><div className="field"><label htmlFor="consumption">Consumo médio mensal</label><p>Use a média dos últimos meses da sua conta.</p><div className="input-group"><input id="consumption" type="number" min="50" max="20000" step="10" value={values.consumption} onChange={event=>patch({consumption:Number(event.target.value)})}/><span>kWh/mês</span></div></div><div className="field"><label htmlFor="bill">Valor médio da conta</label><p>Usado para estimar economia e payback.</p><div className="input-group money"><span>R$</span><input id="bill" type="number" min="50" max="50000" step="10" value={values.bill} onChange={event=>patch({bill:Number(event.target.value)})}/><small>/mês</small></div></div><div className="field"><label>Prevê aumento de consumo?</label><ChoiceGroup id="futureLoadGroup" value={values.future} options={[[0,'Não'],[10,'+10%'],[20,'+20%'],[30,'+30%']]} onChange={future=>patch({future})}/></div></>,
-    2:<><div className="field"><label htmlFor="cityCep">Cidade ou CEP</label><p>Ajuda a preparar a avaliação técnica. A pré-simulação usa a referência solar do estado.</p><input id="cityCep" type="text" placeholder="Ex.: Santo André ou 09000-000" value={values.cityCep} onChange={event=>patch({cityCep:event.target.value})}/></div><div className="field"><label htmlFor="state">Estado</label><select id="state" value={values.state} onChange={event=>patch({state:event.target.value})}>{Object.keys(UF_NAMES).map(uf=><option key={uf} value={uf}>{UF_NAMES[uf]}</option>)}</select></div><div className="field two-fields"><div><label htmlFor="roofArea">Área útil para módulos</label><div className="input-group"><input id="roofArea" type="number" min="8" max="5000" value={values.roofArea} onChange={event=>patch({roofArea:Number(event.target.value)})}/><span>m²</span></div></div><div><label htmlFor="roofType">Tipo de cobertura</label><select id="roofType" value={values.roofType} onChange={event=>patch({roofType:event.target.value})}><option value="ceramic">Telha cerâmica</option><option value="metal">Metálica</option><option value="fiber">Fibrocimento</option><option value="slab">Laje</option><option value="other">Outro</option></select></div></div></>,
+    1:<><div className="field"><label htmlFor="consumption">Consumo médio mensal</label><p>Use a média dos últimos meses da sua conta.</p><div className="input-group"><FormattedIntegerInput id="consumption" value={values.consumption} min={50} max={20000} ariaLabel="Consumo médio mensal em kWh" onChange={consumption=>patch({consumption})}/><span>kWh/mês</span></div></div><div className="field"><label htmlFor="bill">Valor médio da conta</label><p>Usado para estimar economia e payback.</p><div className="input-group money"><span>R$</span><FormattedIntegerInput id="bill" value={values.bill} min={50} max={50000} ariaLabel="Valor médio mensal da conta em reais" onChange={bill=>patch({bill})}/><small>/mês</small></div></div><div className="field"><label>Prevê aumento de consumo?</label><ChoiceGroup id="futureLoadGroup" value={values.future} options={[[0,'Não'],[10,'+10%'],[20,'+20%'],[30,'+30%']]} onChange={future=>patch({future})}/></div></>,
+    2:<><div className="field"><label htmlFor="cityCep">Cidade ou CEP</label><p>Ajuda a preparar a avaliação técnica. A pré-simulação usa a referência solar do estado.</p><input id="cityCep" type="text" placeholder="Ex.: Santo André ou 09000-000" value={values.cityCep} onChange={event=>patch({cityCep:event.target.value})}/></div><div className="field"><label htmlFor="state">Estado</label><select id="state" value={values.state} onChange={event=>patch({state:event.target.value})}>{Object.keys(UF_NAMES).map(uf=><option key={uf} value={uf}>{UF_NAMES[uf]}</option>)}</select></div><div className="field two-fields"><div><label htmlFor="roofArea">Área útil para módulos</label><div className="input-group"><FormattedIntegerInput id="roofArea" value={values.roofArea} min={8} max={5000} ariaLabel="Área útil para módulos em metros quadrados" onChange={roofArea=>patch({roofArea})}/><span>m²</span></div></div><div><label htmlFor="roofType">Tipo de cobertura</label><select id="roofType" value={values.roofType} onChange={event=>patch({roofType:event.target.value})}><option value="ceramic">Telha cerâmica</option><option value="metal">Metálica</option><option value="fiber">Fibrocimento</option><option value="slab">Laje</option><option value="other">Outro</option></select></div></div></>,
     3:<><div className="field"><label>Orientação predominante</label><ChoiceGroup id="orientationGroup" value={values.orientation} options={[["N","Norte"],["NE","NE / NO"],["E","Leste / Oeste"],["S","Sul"]]} onChange={orientation=>patch({orientation})}/></div><div className="field"><label>Sombreamento</label><ChoiceGroup id="shadeGroup" value={values.shade} options={[["none","Nenhum"],["light","Leve"],["medium","Médio"],["high","Alto"]]} onChange={shade=>patch({shade})}/></div><div className="field"><div className="range-head"><label htmlFor="coverage">Quanto do consumo você quer gerar?</label><strong>{values.coverage}%</strong></div><input id="coverage" type="range" min="50" max="100" value={values.coverage} onChange={event=>patch({coverage:Number(event.target.value)})}/></div></>,
     4:<><p className="step-intro">Com os padrões abaixo já conseguimos uma boa pré-análise. Abra os detalhes se souber mais sobre o imóvel e a tarifa.</p><FinancialAssumptions values={values} patch={patch}/><div className="tip-box"><strong>O projeto executivo vem depois</strong><p>Inclinação real, sombras, estrutura, padrão elétrico, equipamentos e regras da distribuidora são confirmados na avaliação técnica.</p></div></>,
   }
@@ -325,7 +355,7 @@ function SolarCalculator() {
         {mobile && <ResultCard values={values} model={model} compact/>}
       </m.div>
 
-      {!mobile && <aside className="preview-card desktop-preview"><div className="preview-top"><div><span>Pré-visualização</span><strong>Arranjo estimado dos módulos</strong></div><span className="live-badge"><i/> ao vivo</span></div><SolarRoofScene values={values} model={model}/><div className="scene-meta"><div><span>Orientação</span><strong>{ORIENTATION_LABEL[values.orientation]}</strong></div><div><span>Sombra</span><strong>{SHADE_LABEL[values.shade]}</strong></div><div><span>Recurso solar</span><strong>≈ {nf1.format(model.solarResource)} kWh/m².dia</strong></div></div><CompactMetrics model={model}/><div className="area-meter"><div><span>Ocupação mínima</span><strong>{nf1.format(model.moduleArea)} / {nf1.format(model.roofArea)} m²</strong></div><div className="meter-track"><m.i animate={{width:`${Math.min(100,model.moduleArea/model.roofArea*100)}%`}} transition={{type:'spring',stiffness:140,damping:24}} className={model.fits?'':'meter-danger'}/></div></div><ResultCard values={values} model={model}/></aside>}
+      {!mobile && <aside className="preview-card desktop-preview"><div className="preview-top"><div><span>Pré-visualização</span><strong>Arranjo estimado dos módulos</strong></div><span className="live-badge"><i/> ao vivo</span></div><SolarRoofScene values={values} model={model}/><div className="scene-meta"><div><span>Orientação</span><strong>{ORIENTATION_LABEL[values.orientation]}</strong></div><div><span>Sombra</span><strong>{SHADE_LABEL[values.shade]}</strong></div><div><span>Recurso solar</span><strong>≈ {nf1.format(model.solarResource)} kWh/m²/dia</strong></div></div><CompactMetrics model={model}/><div className="area-meter"><div><span>Ocupação mínima</span><strong>{nf1.format(model.moduleArea)} / {nf1.format(model.roofArea)} m²</strong></div><div className="meter-track"><m.i animate={{width:`${Math.min(100,model.moduleArea/model.roofArea*100)}%`}} transition={{type:'spring',stiffness:140,damping:24}} className={model.fits?'':'meter-danger'}/></div></div><ResultCard values={values} model={model}/></aside>}
     </div>
   </section>
 }
