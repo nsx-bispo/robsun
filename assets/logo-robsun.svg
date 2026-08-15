@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 190" role="img" aria-labelledby="title desc">
+  <title id="title">RobSun</title>
+  <desc id="desc">RobSun elétrica e energia solar</desc>
+  <rect width="720" height="190" rx="24" fill="#ffffff"/>
+  <g transform="translate(26 18)">
+    <text x="0" y="92" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" letter-spacing="-5">
+      <tspan fill="#0f6733">ROB</tspan><tspan fill="#f7b817">SUN</tspan>
+    </text>
+    <circle cx="600" cy="54" r="38" fill="#f7b817"/>
+    <g stroke="#f7b817" stroke-width="8" stroke-linecap="round">
+      <path d="M600 4v-18"/><path d="M600 122v18"/><path d="M550 54h-18"/><path d="M668 54h18"/>
+      <path d="M565 19l-13-13"/><path d="M635 89l13 13"/><path d="M635 19l13-13"/><path d="M565 89l-13 13"/>
+    </g>
+    <text x="62" y="146" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#f7b817" letter-spacing="1">Elétrica e energia solar</text>
+  </g>
+</svg>
