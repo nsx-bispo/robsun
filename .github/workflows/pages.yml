@@ -32,11 +32,26 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run React smoke checks
-        run: node tests/react-smoke.mjs
+      - name: Run source smoke checks
+        run: npm run test:smoke
 
       - name: Build Vite app
         run: npm run build
+
+      - name: Install Chromium for E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: Run mobile and desktop browser regression tests
+        run: npm run test:e2e
+
+      - name: Upload visual regression captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robsun-browser-captures
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
