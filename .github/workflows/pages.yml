@@ -24,8 +24,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Materialize RobSun v4 site
+        run: |
+          python - <<'PY'
+          import base64, gzip, json
+          from pathlib import Path
+          payload = json.loads(Path('site-v4.json').read_text())
+          for path, encoded in payload.items():
+              Path(path).write_bytes(gzip.decompress(base64.b64decode(encoded)))
+              print(f'Materialized {path}')
+          PY
+
       - name: Validate JavaScript syntax
-        run: node --check v3.js
+        run: node --check v4.js
 
       - name: Run site smoke checks
         run: node tests/smoke.mjs
