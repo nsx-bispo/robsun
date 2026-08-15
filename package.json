@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:smoke": "node tests/react-smoke.mjs",
-    "test:e2e": "node tests/browser-e2e.mjs"
+    "test:e2e": "node tests/browser-checks.mjs"
   },
   "dependencies": {
     "motion": "^12.0.0",
