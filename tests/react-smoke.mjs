@@ -6,6 +6,7 @@ const index = fs.readFileSync('index.html', 'utf8')
 const vite = fs.readFileSync('vite.config.js', 'utf8')
 const logo = fs.readFileSync('assets/logo-robsun.svg', 'utf8')
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+const typewriterBlock = source.split('function Typewriter() {')[1]?.split('\nfunction Reveal')[0] || ''
 
 const checks = [
   [index.includes('/src/app-v6.jsx'), 'v6 React entrypoint is referenced'],
@@ -13,7 +14,7 @@ const checks = [
   [source.includes('MotionConfig reducedMotion="user"'), 'Global reduced-motion policy exists'],
   [source.includes('function Typewriter'), 'Typewriter component exists'],
   [source.includes('function FormattedIntegerInput'), 'pt-BR formatted calculator inputs exist'],
-  [!source.match(/function Typewriter\(\)[\s\S]*?useReducedMotion/), 'Typewriter is not disabled by iPhone reduced-motion preference'],
+  [typewriterBlock.length > 0 && !typewriterBlock.includes('useReducedMotion'), 'Typewriter is not disabled by iPhone reduced-motion preference'],
   [source.includes('Math.max(1, cursor)'), 'Typewriter never renders an empty phrase'],
   [source.includes('function SolarCalculator'), 'Solar calculator exists'],
   [source.includes('function SolarRoofScene'), 'Solar scene is componentized'],
