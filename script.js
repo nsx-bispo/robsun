@@ -9,7 +9,7 @@ const stateRegion = {
 const hspByRegion = { NE:5.5, CO:5.2, SE:5.1, N:4.6, S:4.4 };
 const orientationFactor = { N:1, NE:.96, E:.90, S:.78 };
 const shadeFactor = { none:1, light:.95, medium:.86, high:.72 };
-const pricePerWp = kw => kw <= 2.5 ? 3.87 : kw <= 5 ? 2.84 : 2.31;
+const marketPricePerWp = 2.45;
 const nf0 = new Intl.NumberFormat('pt-BR', {maximumFractionDigits:0});
 const nf1 = new Intl.NumberFormat('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1});
 const money0 = new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL',maximumFractionDigits:0});
@@ -47,9 +47,9 @@ function getModel() {
   const tariff = consumption > 0 ? bill / consumption : 0;
   const monthlySavings = Math.min(generation, futureConsumption) * tariff * .90;
   const annualSavings = monthlySavings * 12;
-  const basePrice = installedKw * 1000 * pricePerWp(installedKw);
-  const installLow = basePrice * .90;
-  const installHigh = basePrice * 1.18;
+  const basePrice = installedKw * 1000 * marketPricePerWp;
+  const installLow = basePrice * .85;
+  const installHigh = basePrice * 1.25;
   const paybackLow = annualSavings > 0 ? installLow / annualSavings : 0;
   const paybackHigh = annualSavings > 0 ? installHigh / annualSavings : 0;
   return {consumption,bill,futureConsumption,coverage,hsp,losses,panelW,effectiveHsp,targetGeneration,neededKw,panels,installedKw,generation,requiredArea,roofArea,capacity,fits,actualCoverage,monthlySavings,annualSavings,installLow,installHigh,paybackLow,paybackHigh};
@@ -86,7 +86,7 @@ function updateVisual() {
   const m = getModel();
   setPanelCount(m.panels);
   els.liveSystemKw.textContent = `${m.installedKw.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} kWp`;
-  els.livePanels.textContent = m.panels > 30 ? `30+ / ${m.panels}` : m.panels;
+  els.livePanels.textContent = m.panels;
   els.liveGeneration.textContent = formatThousands(m.generation);
   els.liveCoverage.textContent = Math.round(Math.min(m.actualCoverage,100));
   els.areaUsed.textContent = nf1.format(m.requiredArea);
