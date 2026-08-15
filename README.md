@@ -1,36 +1,32 @@
-# RobSun — Site mobile-first de Energia Solar
+# RobSun — simulador solar interativo
 
-Landing page profissional e responsiva com calculadora solar, desenvolvida em HTML, CSS e JavaScript puro.
+Site institucional mobile-first com calculadora fotovoltaica 100% front-end.
 
-## Foco de UX
-- Mobile-first, com referência de largura para iPhone 14 Pro (~393 px).
-- Controles de toque confortáveis (48–56 px).
-- CTA fixo no rodapé em dispositivos móveis, respeitando `safe-area-inset-bottom` do iPhone.
-- Calculadora em 2 etapas para reduzir carga cognitiva.
-- Resultados organizados por prioridade: potência → painéis/geração → área/economia/investimento/payback.
-- Menu mobile compacto, tipografia responsiva e ausência de scroll horizontal.
-- Suporte a `prefers-reduced-motion`.
+## Experiência da calculadora
+- fluxo guiado em 4 etapas;
+- telhado animado com módulos adicionados/removidos em tempo real;
+- consumo atual e previsão de aumento futuro;
+- estado/região solar, área útil e tipo de cobertura;
+- orientação predominante e sombreamento;
+- meta de compensação;
+- potência do módulo e perdas do sistema;
+- alerta quando o telhado não comporta a quantidade recomendada;
+- potência, geração mensal/anual, área, economia, investimento e payback indicativos.
 
-## Arquivos
-- `index.html` — estrutura e conteúdo.
-- `styles.css` — design system, layout mobile-first e breakpoints.
-- `script.js` — calculadora, fluxo de etapas, menu e interações.
+## Modelo simplificado
 
-## Premissas atuais da calculadora
-- consumo médio mensal informado em kWh;
-- região brasileira como aproximação de horas de sol pico;
-- módulos de 550 W, 585 W ou 610 W;
-- performance ratio de 80%;
-- área aproximada de 2,55 m² por módulo;
-- investimento indicativo de R$ 3.600 a R$ 5.000 por kWp;
-- economia limitada a 90% da conta como margem conservadora.
+`Geração mensal ≈ kWp × HSP × 30 × (1 - perdas) × orientação × sombra`
 
-A simulação é orientativa e não substitui vistoria e projeto técnico.
+Premissas importantes:
+- HSP é uma aproximação regional, não uma consulta solarimétrica por coordenadas;
+- perdas padrão de 14%, seguindo a referência inicial exibida pelo PVWatts;
+- área aproximada de 2,6 m² por módulo, incluindo margem simples de ocupação;
+- investimento é apenas uma faixa indicativa e não constitui orçamento;
+- economia considera uma margem conservadora para custos residuais/fixos.
 
-## Antes de produção
-1. Trocar WhatsApp, e-mail e demais contatos pelos dados reais da RobSun.
-2. Integrar o formulário com CRM, WhatsApp, e-mail ou backend.
-3. Ajustar custos por kWp para a operação real da empresa.
-4. Definir área de atendimento.
-5. Incluir política de privacidade/LGPD.
-6. Para maior precisão, substituir região por CEP/cidade e usar dados solarimétricos reais.
+## Referências
+- Google Project Sunroof: https://sunroof.withgoogle.com/
+- NREL PVWatts: https://pvwatts.nrel.gov/
+- CRESESB SunData: https://www.cresesb.cepel.br/index.php?section=sundata
+
+A simulação é orientativa e deve ser validada por vistoria e projeto executivo.
