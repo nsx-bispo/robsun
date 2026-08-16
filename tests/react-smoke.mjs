@@ -13,6 +13,8 @@ const checks = [
   [source.includes('LazyMotion'), 'LazyMotion reduces animation runtime cost'],
   [source.includes('MotionConfig reducedMotion="user"'), 'Global reduced-motion policy exists'],
   [source.includes('function Typewriter'), 'Typewriter component exists'],
+  [source.includes('compass-ring') && source.includes('compass-needle'), 'Premium compass markup exists'],
+  [source.includes('panel-glint') && source.includes('ease:\'easeInOut\''), 'Panel glint motion exists'],
   [source.includes('function FormattedIntegerInput'), 'pt-BR formatted calculator inputs exist'],
   [typewriterBlock.length > 0 && !typewriterBlock.includes('useReducedMotion'), 'Typewriter is not disabled by iPhone reduced-motion preference'],
   [source.includes('Math.max(1, cursor)'), 'Typewriter never renders an empty phrase'],

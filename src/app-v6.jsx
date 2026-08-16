@@ -255,16 +255,21 @@ function SolarRoofScene({ values, model, compact = false }) {
   return <div className={`solar-scene ${compact ? 'solar-scene-compact' : ''}`} data-panels={model.panels} data-orientation={values.orientation}>
     <m.div className="scene-sun" animate={reduced ? undefined : { scale:[1,1.035,1] }} transition={{ duration:4.8, repeat:Infinity, ease:'easeInOut' }} />
     <div className="scene-rays" />
-    <div className="compass"><span>N</span><m.i animate={{ rotate:COMPASS_ANGLE[values.orientation] }} transition={{ type:'spring', stiffness:210, damping:22 }} /></div>
-    <div className="roof-positioner" style={{ '--roof-rotation':`${ROOF_ROTATION[values.orientation]}deg` }}>
+    <div className="compass" aria-label={`Orientação do telhado: ${ORIENTATION_LABEL[values.orientation]}`}>
+  <div className="compass-ring" aria-hidden="true"><span className="compass-n">N</span><span className="compass-e">E</span><span className="compass-s">S</span><span className="compass-o">O</span><m.div className="compass-ticks" animate={{ rotate:COMPASS_ANGLE[values.orientation] * .18 }} transition={{ type:'spring', stiffness:170, damping:22 }} /></div>
+  <m.div className="compass-needle" animate={{ rotate:COMPASS_ANGLE[values.orientation] }} transition={{ type:'spring', stiffness:230, damping:24, mass:.65 }} aria-hidden="true"><i className="needle-north" /><i className="needle-south" /></m.div>
+  <div className="compass-center" aria-hidden="true"><span /></div>
+  <m.span className="compass-heading" key={values.orientation} initial={{ opacity:0, y:3 }} animate={{ opacity:1, y:0 }} transition={{ duration:.22 }}>{ORIENTATION_LABEL[values.orientation]}</m.span>
+</div>
+    <m.div className="roof-positioner" animate={{ y:[0,-2,0] }} transition={reduced ? undefined : { duration:5.2, repeat:Infinity, ease:'easeInOut' }} style={{ '--roof-rotation':`${ROOF_ROTATION[values.orientation]}deg` }}>
       <m.div className="roof-scaler" animate={{ scale:model.fits ? 1 : .985 }} transition={{ type:'spring', stiffness:150, damping:24 }}>
         <div className="roof-surface">
           <div className="roof-texture" />
-          <LayoutGroup id={compact ? 'mobile-array' : 'desktop-array'}><m.div className="panel-grid" layout style={{ '--cols':columns }}><AnimatePresence mode="popLayout" initial={false}>{Array.from({ length:visiblePanels }, (_, index) => <m.i layout="position" key={`panel-${index}`} className="solar-panel" initial={reduced ? false : { opacity:0, y:14, scale:.84 }} animate={{ opacity:1, y:0, scale:1 }} exit={reduced ? undefined : { opacity:0, y:-8, scale:.78 }} transition={{ layout:{ type:'spring', stiffness:310, damping:29 }, default:{ type:'spring', stiffness:290, damping:24, delay:Math.min(index*.012,.13) } }}><span className="panel-cells" /><span className="panel-glint" /></m.i>)}</AnimatePresence></m.div></LayoutGroup>
+          <LayoutGroup id={compact ? 'mobile-array' : 'desktop-array'}><m.div className="panel-grid" layout style={{ '--cols':columns }}><AnimatePresence mode="popLayout" initial={false}>{Array.from({ length:visiblePanels }, (_, index) => <m.i layout="position" key={`panel-${index}`} className="solar-panel" initial={reduced ? false : { opacity:0, y:14, scale:.84 }} animate={{ opacity:1, y:0, scale:1 }} exit={reduced ? undefined : { opacity:0, y:-8, scale:.78 }} transition={{ layout:{ type:'spring', stiffness:310, damping:29 }, default:{ type:'spring', stiffness:290, damping:24, delay:Math.min(index*.012,.13) } }}><span className="panel-cells" /><m.span className="panel-glint" animate={reduced ? undefined : { x:['-28%','28%','-28%'] }} transition={reduced ? undefined : { duration:3.8, repeat:Infinity, ease:'easeInOut', delay:Math.min(index*.09,.7) }} /></m.i>)}</AnimatePresence></m.div></LayoutGroup>
           <div className="roof-sheen" />
         </div>
       </m.div>
-    </div>
+    </m.div>
     <m.div className="scene-shade" animate={{ opacity:{ none:0, light:.10, medium:.22, high:.38 }[values.shade], x:{ none:55, light:28, medium:8, high:-8 }[values.shade] }} transition={{ type:'spring', stiffness:115, damping:24 }} />
     {!compact && <svg className="energy-flow" viewBox="0 0 700 220" preserveAspectRatio="none" aria-hidden="true"><path className="energy-base" d="M100 175 C250 150 400 202 590 120"/><m.path className="energy-live" d="M100 175 C250 150 400 202 590 120" initial={{ pathLength:0, opacity:0 }} animate={reduced ? { pathLength:1, opacity:.7 } : { pathLength:[0,.7,1], opacity:[0,.9,0] }} transition={reduced ? { duration:.2 } : { duration:2.8, repeat:Infinity, ease:'easeInOut' }}/></svg>}
     <AnimatePresence>{hidden > 0 && <m.span className="panel-overflow" initial={{ opacity:0, scale:.9 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0 }}>{`+${hidden} módulos`}</m.span>}</AnimatePresence>
