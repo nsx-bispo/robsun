@@ -1,0 +1,27 @@
+name: Fix RobSun v7 CSS
+on:
+  push:
+    paths: ['.github/workflows/fix-v7-css.yml']
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Remove legacy important declarations
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/app-v7.css')
+          s=p.read_text()
+          s=s.replace('!important','')
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app-v7.css
+          git diff --cached --check
+          git commit -m "Remove legacy important declarations from v7 styles"
+          git push
