@@ -11,7 +11,8 @@ Site institucional mobile-first com calculadora fotovoltaica 100% front-end.
 - meta de compensação;
 - potência do módulo e perdas do sistema;
 - alerta quando o telhado não comporta a quantidade recomendada;
-- potência, geração mensal/anual, área, economia, investimento e payback indicativos.
+- potência, geração mensal/anual, área, economia, investimento e payback indicativos;
+- cena solar mobile refinada com bússola e posicionamento estável do telhado.
 
 ## Modelo simplificado
 
