@@ -4,6 +4,7 @@ Site institucional mobile-first com calculadora fotovoltaica 100% front-end.
 
 ## Experiência da calculadora
 - fluxo guiado em 4 etapas;
+- estado inicial neutro antes do cliente informar o consumo;
 - telhado animado com módulos adicionados/removidos em tempo real;
 - consumo atual e previsão de aumento futuro;
 - estado/região solar, área útil e tipo de cobertura;
@@ -11,8 +12,10 @@ Site institucional mobile-first com calculadora fotovoltaica 100% front-end.
 - meta de compensação;
 - potência do módulo e perdas do sistema;
 - alerta quando o telhado não comporta a quantidade recomendada;
-- potência, geração mensal/anual, área, economia, investimento e payback indicativos;
-- cena solar mobile refinada com bússola e posicionamento estável do telhado.
+- potência, geração, área, economia, investimento e payback indicativos;
+- cena solar mobile refinada com bússola simples e posicionamento estável do telhado;
+- animações React/Motion orientadas à interação e respeitando reduced motion;
+- testes Playwright em 320 px, 393 px, 430 px e desktop antes do deploy.
 
 ## Modelo simplificado
 
@@ -20,10 +23,10 @@ Site institucional mobile-first com calculadora fotovoltaica 100% front-end.
 
 Premissas importantes:
 - HSP é uma aproximação regional, não uma consulta solarimétrica por coordenadas;
-- perdas padrão de 14%, seguindo a referência inicial exibida pelo PVWatts;
-- área aproximada de 2,6 m² por módulo, incluindo margem simples de ocupação;
+- perdas padrão de 14%;
+- área aproximada por módulo conforme a potência selecionada;
 - investimento é apenas uma faixa indicativa e não constitui orçamento;
-- economia considera uma margem conservadora para custos residuais/fixos.
+- economia considera premissas simplificadas de autoconsumo, compensação e custo residual da unidade.
 
 ## Referências
 - Google Project Sunroof: https://sunroof.withgoogle.com/
