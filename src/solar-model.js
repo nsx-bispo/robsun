@@ -8,11 +8,14 @@
 const DAYS_PER_MONTH = 365.25 / 12
 const CONNECTION_KWH = { mono: 30, bi: 50, tri: 100 }
 const MARKET_REFERENCE_BRL_PER_WP = 2.45
-const LAYOUT_FACTOR = 1.05
+
+// Extra footprint beyond the module dimensions. Slabs need more room for tilted rows and inter-row spacing.
+const LAYOUT_FACTOR_BY_ROOF = { ceramic: 1.06, metal: 1.06, fiber: 1.06, slab: 1.35, other: 1.10 }
 
 // Conservative representative daily solar-hours by UF (kWh/m2.day equivalent HSP).
-// These are intentionally pre-design references, not a replacement for the irradiation of the exact coordinates.
-// The final RobSun proposal must use the project location and a detailed solar-resource study.
+// These are pre-design references derived from the spatial ranges in the INPE/LABREN atlas and are intentionally
+// conservative. They are not a substitute for irradiation at the exact coordinates. The final RobSun proposal must
+// use the project location and a detailed solar-resource study.
 const HSP_BY_UF = {
   AC: 4.55, AL: 5.35, AP: 4.95, AM: 4.45, BA: 5.45, CE: 5.55, DF: 5.30,
   ES: 5.05, GO: 5.25, MA: 5.25, MT: 5.10, MS: 5.05, MG: 5.25, PA: 4.75,
@@ -36,7 +39,7 @@ function clamp(value, min, max) {
 }
 
 function referenceTilt(state) {
-  // CRESESB recommends avoiding module tilt below 10 degrees because of water and dirt accumulation.
+  // CRESESB uses latitude as a common reference and recommends avoiding tilt below 10 degrees.
   return Math.max(10, Math.round(LAT_BY_UF[state] || 20))
 }
 
@@ -79,7 +82,8 @@ export function calculateSolar(values) {
   const generation = kw * netYieldPerKwp
 
   const moduleFootprint = panels * (PANEL_AREA[panelPower] || 2.6)
-  const area = moduleFootprint * LAYOUT_FACTOR
+  const layoutFactor = LAYOUT_FACTOR_BY_ROOF[values.roofType] || LAYOUT_FACTOR_BY_ROOF.other
+  const area = moduleFootprint * layoutFactor
   const roofArea = Math.max(1, Number(values.roofArea) || 40)
   const fits = area <= roofArea
   const actualCoverage = (generation / projectedConsumption) * 100
@@ -99,6 +103,8 @@ export function calculateSolar(values) {
   const bankedCredits = Math.max(0, exported - compensated)
   const offsetEnergy = Math.min(projectedConsumption, selfConsumed + compensated)
 
+  // Art. 27 of Lei 14.300 applies 60% in 2026 to the listed distribution components, not to the full retail tariff.
+  // fioBShare is therefore an explicit approximation of those components as a share of the user's effective tariff.
   const fioBShare = clamp(Number(values.fioBShare) || 28, 0, 100) / 100
   const fioBTransition = values.gdRule === 'new2026' ? 0.60 : 0
   const fioBCharge = compensated * tariff * fioBShare * fioBTransition
@@ -123,6 +129,7 @@ export function calculateSolar(values) {
     projectedConsumption,
     area,
     moduleFootprint,
+    layoutFactor,
     roofArea,
     fits,
     coverage: actualCoverage,
