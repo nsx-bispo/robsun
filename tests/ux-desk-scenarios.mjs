@@ -1,5 +1,11 @@
 import { chromium } from 'playwright'
 function assert(c,m){if(!c)throw new Error(m)}
+async function assertCompactAccessibleHelp(p,locator,label){
+  const box=await locator.boundingBox()
+  assert(box&&box.width>=43&&box.height>=43,`${label}: área de toque da ajuda ficou pequena`)
+  const visual=await locator.evaluate(el=>({w:parseFloat(getComputedStyle(el,'::before').width),h:parseFloat(getComputedStyle(el,'::before').height)}))
+  assert(visual.w<=24&&visual.h<=24,`${label}: círculo visual da ajuda ficou grande novamente: ${JSON.stringify(visual)}`)
+}
 const browser=await chromium.launch({headless:true})
 try{
   // Cenário 1 — cliente leigo na V1 encontra ajuda sem poluir os cards-resumo.
@@ -10,8 +16,7 @@ try{
     await p.waitForTimeout(250)
     const helps=p.locator('#simulador .robsun-info')
     assert(await helps.count()>=2,'V1: poucos pontos de ajuda visíveis')
-    const helpBox=await helps.first().boundingBox()
-    assert(helpBox&&helpBox.width<=25&&helpBox.height<=25,'V1: ícone de ajuda voltou a dominar o layout')
+    await assertCompactAccessibleHelp(p,helps.first(),'V1')
     assert(await p.locator('#simulador .compact-metrics .robsun-info').count()===0,'V1: cards-resumo ficaram poluídos com ícones de ajuda')
     await helps.first().click()
     assert((await p.locator('.robsun-help-dialog').textContent()).includes('Exemplo:'),'V1: ajuda sem exemplo simples')
@@ -31,9 +36,7 @@ try{
     assert(await p.getByRole('button',{name:'Não sei',exact:true}).count()>=2,'V2: orientação/sombra não aceitam “Não sei”')
     assert(await p.locator('.v2-result-empty').isVisible(),'V2: resultado não começa neutro')
     assert((await p.locator('#simulador').textContent()).includes('3. Refine se quiser'),'V2: refinamento opcional não está separado como terceira etapa')
-    const help=p.locator('#simulador .robsun-info').first()
-    const helpBox=await help.boundingBox()
-    assert(helpBox&&helpBox.width<=25&&helpBox.height<=25,'V2: ícone de ajuda grande demais')
+    await assertCompactAccessibleHelp(p,p.locator('#simulador .robsun-info').first(),'V2')
     await p.locator('#v2-consumption').fill('430')
     await p.locator('#v2-bill').fill('510')
     await p.locator('#v2-state').selectOption('SP')
