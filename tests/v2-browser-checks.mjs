@@ -1,0 +1,43 @@
+import { chromium } from 'playwright'
+import fs from 'node:fs/promises'
+const baseUrl='http://127.0.0.1:4173/robsun/v2/'
+const dir='test-results-v2'
+await fs.mkdir(dir,{recursive:true})
+function assert(c,m){if(!c)throw new Error(m)}
+async function run(browser,viewport,label){
+ const context=await browser.newContext({viewport})
+ const page=await context.newPage()
+ const errors=[]
+ page.on('pageerror',e=>errors.push(e.message))
+ page.on('console',m=>{if(m.type()==='error')errors.push(m.text())})
+ try{
+  await page.goto(baseUrl,{waitUntil:'domcontentloaded'})
+  await page.locator('#simulador').waitFor()
+  const overflow=await page.evaluate(()=>({w:innerWidth,d:document.documentElement.scrollWidth,b:document.body.scrollWidth}))
+  assert(overflow.d<=overflow.w+1&&overflow.b<=overflow.w+1,`${label}: horizontal overflow ${JSON.stringify(overflow)}`)
+  assert(await page.locator('.v2-hero h1').isVisible(),`${label}: hero missing`)
+  assert((await page.locator('.v2-hero h1').textContent()).includes('Energia solar projetada'),`${label}: hero copy mismatch`)
+  await page.locator('#v2-consumption').fill('800')
+  await page.locator('#v2-city').fill('Santo André')
+  await page.getByRole('button',{name:'+10%'}).click()
+  await page.getByRole('button',{name:/Levar esta simulação/}).click()
+  await page.locator('#contato').waitFor()
+  assert((await page.locator('.v2-lead-summary').textContent()).includes('SIMULAÇÃO ANEXADA'),`${label}: calculator summary not attached`)
+  await page.locator('input[autocomplete="name"]').fill('Cliente Teste')
+  await page.locator('input[autocomplete="tel"]').fill('(11) 99999-9999')
+  await page.locator('input[autocomplete="email"]').fill('teste@example.com')
+  await page.getByRole('button',{name:/Solicitar avaliação técnica/}).click()
+  await page.waitForTimeout(200)
+  assert((await page.locator('.v2-form-status').textContent()).includes('endpoint'),`${label}: preview form must disclose missing endpoint`)
+  const stored=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('robsun:last-lead')))
+  assert(stored?.calculator?.inputs?.consumption===800,`${label}: payload missing calculator input`)
+  assert(stored?.calculator?.inputs?.margin===10,`${label}: payload missing design margin`)
+  assert(stored?.calculator?.result?.systemKwp>0,`${label}: payload missing calculator result`)
+  assert(stored?.contact?.name==='Cliente Teste',`${label}: payload missing contact`)
+  assert(!errors.length,`${label}: browser errors ${errors.join(' | ')}`)
+  await page.screenshot({path:`${dir}/${label}.png`,fullPage:true,animations:'disabled'})
+  console.log(`✓ ${label}`)
+ }finally{await context.close()}
+}
+const browser=await chromium.launch({headless:true})
+try{await run(browser,{width:393,height:852},'v2-mobile-393');await run(browser,{width:1440,height:1000},'v2-desktop-1440');console.log('✓ RobSun V2 E2E passed')}finally{await browser.close()}
