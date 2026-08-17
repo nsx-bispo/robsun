@@ -41,6 +41,7 @@ async function run(browser,viewport,label){
   await page.getByRole('button',{name:/Enviar esta simulação/}).click()
   await page.locator('#contato').waitFor()
   assert((await page.locator('.v2-lead-summary').textContent()).includes('SIMULAÇÃO ANEXADA'),`${label}: calculator summary not attached`)
+  await page.waitForFunction(()=>document.querySelector('input[placeholder="Cidade ou CEP"]')?.value==='Santo André')
   assert(await page.locator('input[placeholder="Cidade ou CEP"]').inputValue()==='Santo André',`${label}: contact city not reused from simulation`)
   await page.locator('input[autocomplete="name"]').fill('Cliente Teste')
   await page.locator('input[autocomplete="tel"]').fill('(11) 99999-9999')
