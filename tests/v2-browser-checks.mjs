@@ -19,7 +19,7 @@ async function run(browser,viewport,label){
   assert((await page.locator('.v2-hero h1').textContent()).includes('Energia solar projetada'),`${label}: hero copy mismatch`)
   await page.locator('#v2-consumption').fill('800')
   await page.locator('#v2-city').fill('Santo André')
-  await page.getByRole('button',{name:'+10%'}).click()
+  await page.getByRole('button',{name:'+10%',exact:true}).click()
   await page.getByRole('button',{name:/Levar esta simulação/}).click()
   await page.locator('#contato').waitFor()
   assert((await page.locator('.v2-lead-summary').textContent()).includes('SIMULAÇÃO ANEXADA'),`${label}: calculator summary not attached`)
