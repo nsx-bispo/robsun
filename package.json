@@ -1,7 +1,7 @@
 {
   "name": "robsun-solar",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,8 @@
     "test:smoke": "node tests/react-smoke.mjs",
     "test:smoke:v2": "node tests/v2-smoke.mjs",
     "test:e2e": "node tests/browser-checks.mjs",
-    "test:e2e:v2": "node tests/v2-browser-checks.mjs"
+    "test:e2e:v2": "node tests/v2-browser-checks.mjs",
+    "test:ux": "node tests/ux-desk-scenarios.mjs"
   },
   "dependencies": {
     "motion": "^12.0.0",

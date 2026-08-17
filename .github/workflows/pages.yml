@@ -47,7 +47,7 @@ jobs:
       - name: Install Chromium for E2E
         run: npx playwright install --with-deps chromium
 
-      - name: Run mobile and desktop browser regression tests
+      - name: Run browser, mobile and desk UX regression tests
         shell: bash
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/robsun-vite.log 2>&1 &
@@ -75,6 +75,7 @@ jobs:
 
           npm run test:e2e
           npm run test:e2e:v2
+          npm run test:ux
 
       - name: Upload visual regression captures
         if: always()
