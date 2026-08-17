@@ -1,0 +1,92 @@
+/* Shared calculator polish for RobSun V1 + V2 */
+#simulador .robsun-help-target{display:inline-flex;align-items:center;gap:5px;flex-wrap:nowrap}
+
+/* V1 density */
+#simulador .wizard-card{padding:24px}
+#simulador .wizard-step{padding-top:24px}
+#simulador .step-heading{margin-bottom:22px}
+#simulador .field{margin:18px 0}
+#simulador .field>label,#simulador .range-head label{margin-bottom:4px}
+#simulador .field>p{font-size:.82rem;line-height:1.45;margin:0 0 8px;max-width:660px}
+#simulador .field input:not([type=range]),#simulador .field select{height:50px}
+#simulador .choice-group button{min-height:44px}
+#simulador .advanced-details summary{min-height:44px;padding:12px 14px}
+#simulador .compact-metrics{border:1px solid var(--line);border-radius:15px;overflow:hidden;gap:0;background:#fff}
+#simulador .compact-metrics>span{border:0;border-radius:0;background:transparent;padding:10px 12px}
+#simulador .compact-metrics>span+span{border-left:1px solid var(--line)}
+#simulador .compact-metrics small{font-size:.72rem}
+#simulador .compact-metrics strong{font-size:.93rem}
+#simulador .result-card{margin-top:14px;padding-top:14px}
+#simulador .result-hero{padding:17px 18px;border-radius:15px}
+#simulador .result-hero strong{font-size:1.95rem}
+#simulador .result-grid{gap:7px}
+#simulador .result-grid article{padding:11px 12px;border-radius:11px}
+#simulador .result-note{font-size:.74rem;line-height:1.45}
+
+/* V2 density and hierarchy */
+#simulador.v2-calc{padding-top:88px;padding-bottom:88px}
+#simulador .v2-calc-intro{margin-bottom:42px}
+#simulador .v2-calc-fields{padding-top:32px;padding-bottom:32px}
+#simulador .v2-calc-start{margin-bottom:18px;padding-bottom:13px}
+#simulador .v2-calc-start.secondary{margin-top:26px}
+#simulador .v2-calc-start.tertiary{margin-top:24px;margin-bottom:10px;padding-bottom:12px}
+#simulador .v2-field{gap:7px;margin-bottom:16px}
+#simulador .v2-field>span{font-size:13px;line-height:1.25}
+#simulador .v2-field small{font-size:11px;line-height:1.4}
+#simulador .v2-field input,#simulador .v2-field select,#simulador .v2-field textarea,#simulador .v2-input-unit{min-height:50px;border-radius:10px}
+#simulador .v2-input-unit input{min-height:48px}
+#simulador .v2-choice{border:0;gap:7px}
+#simulador .v2-choice button{flex:0 1 auto;min-width:96px;min-height:42px;border:1px solid #c0c6c1;border-radius:999px;padding:0 14px;background:rgba(255,255,255,.28)}
+#simulador .v2-choice button.active{border-color:var(--ink);background:var(--ink);color:#fff}
+#simulador .v2-details-toggle{margin:4px 0 16px}
+#simulador .v2-result{padding:34px}
+#simulador .v2-result-main{padding:24px 0}
+#simulador .v2-result-main strong{font-size:52px}
+#simulador .v2-result dl{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:10px 0}
+#simulador .v2-result dl>div{display:grid;gap:5px;padding:12px 0}
+#simulador .v2-result dd{text-align:left;font-size:14px}
+#simulador .v2-result dt{font-size:11px}
+#simulador .v2-result-copy{margin-bottom:16px}
+#simulador .v2-assumption{margin:0 0 16px}
+
+@media(max-width:767px){
+  #simulador .wizard-card{padding:18px;border-radius:22px}
+  #simulador .wizard-head{padding-bottom:17px}
+  #simulador .wizard-step{padding-top:19px}
+  #simulador .step-heading{gap:12px;margin-bottom:18px}
+  #simulador .step-heading>span{width:46px;height:46px;border-radius:13px;font-size:1rem}
+  #simulador .step-heading h3{font-size:1.35rem}
+  #simulador .field{margin:16px 0}
+  #simulador .field>p{font-size:.8rem}
+  #simulador .two-fields{grid-template-columns:1fr;gap:0}
+  #simulador .choice-group{grid-template-columns:repeat(2,1fr)}
+  #simulador .compact-metrics{margin-top:8px}
+  #simulador .compact-metrics>span{padding:9px 8px;min-width:0}
+  #simulador .compact-metrics small{font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #simulador .compact-metrics strong{font-size:.82rem;white-space:nowrap}
+  #simulador .result-grid{grid-template-columns:1fr 1fr}
+  #simulador .result-grid article{padding:10px}
+  #simulador .advanced-grid{grid-template-columns:1fr}
+
+  #simulador.v2-calc{padding-top:66px;padding-bottom:66px}
+  #simulador .v2-calc-intro{margin-bottom:28px}
+  #simulador .v2-calc-fields{padding:24px 0}
+  #simulador .v2-two{grid-template-columns:1fr;gap:0}
+  #simulador .v2-calc-start{margin-bottom:15px}
+  #simulador .v2-calc-start.secondary{margin-top:22px}
+  #simulador .v2-calc-start.tertiary{margin-top:20px}
+  #simulador .v2-field{margin-bottom:14px}
+  #simulador .v2-choice{gap:6px}
+  #simulador .v2-choice button{min-width:0;min-height:40px;padding:0 12px;font-size:13px}
+  #simulador .v2-result{padding:26px 22px}
+  #simulador .v2-result-main{padding:20px 0}
+  #simulador .v2-result-main strong{font-size:44px}
+  #simulador .v2-result dl{grid-template-columns:1fr 1fr;gap:0 14px}
+  #simulador .v2-result dl>div{padding:10px 0}
+  #simulador .v2-result-empty{gap:12px}
+}
+
+@media(max-width:420px){
+  #simulador .compact-metrics strong{font-size:.78rem}
+  #simulador .v2-result dl{grid-template-columns:1fr}
+}
