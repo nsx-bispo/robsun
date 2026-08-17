@@ -6,6 +6,7 @@ async function assertCompactAccessibleHelp(p,locator,label){
   const visual=await locator.evaluate(el=>({w:parseFloat(getComputedStyle(el,'::before').width),h:parseFloat(getComputedStyle(el,'::before').height)}))
   assert(visual.w<=24&&visual.h<=24,`${label}: círculo visual da ajuda ficou grande novamente: ${JSON.stringify(visual)}`)
 }
+async function pseudoContent(locator){return locator.evaluate(el=>getComputedStyle(el,'::before').content.replace(/^['"]|['"]$/g,''))}
 const browser=await chromium.launch({headless:true})
 try{
   // Cenário 1 — cliente leigo na V1 encontra ajuda sem poluir os cards-resumo.
@@ -22,9 +23,13 @@ try{
     assert((await p.locator('.robsun-help-dialog').textContent()).includes('Exemplo:'),'V1: ajuda sem exemplo simples')
     await p.getByRole('button',{name:'Fechar explicação'}).click()
     await p.getByRole('button',{name:/Continuar/}).click()
-    await p.waitForTimeout(180)
-    assert((await p.locator('#simulador').textContent()).includes('Área disponível no telhado'),'V1: nomenclatura de área continua técnica demais')
-    assert((await p.locator('#simulador').textContent()).includes('Tipo de telhado'),'V1: nomenclatura de cobertura não foi simplificada')
+    await p.locator('#roofArea').waitFor()
+    const roofLabel=p.locator('label[for="roofArea"]')
+    const roofTypeLabel=p.locator('label[for="roofType"]')
+    assert((await pseudoContent(roofLabel)).includes('Área disponível no telhado'),'V1: rótulo visual de área continua técnico demais')
+    assert((await p.locator('#roofArea').getAttribute('aria-label'))==='Área disponível no telhado','V1: nome acessível de área não foi simplificado')
+    assert((await pseudoContent(roofTypeLabel)).includes('Tipo de telhado'),'V1: rótulo visual de cobertura não foi simplificado')
+    assert((await p.locator('#roofType').getAttribute('aria-label'))==='Tipo de telhado','V1: nome acessível do tipo de telhado não foi simplificado')
     await p.close()
     console.log('✓ mesa 1: V1 explica termos sem poluir o resumo')
   }
