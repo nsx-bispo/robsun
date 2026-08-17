@@ -23,6 +23,16 @@
 #simulador .result-grid article{padding:11px 12px;border-radius:11px}
 #simulador .result-note{font-size:.74rem;line-height:1.45}
 
+/* Stable visual aliases for V1 labels that React re-renders during wizard transitions. */
+#simulador label[for="roofArea"],#simulador label[for="roofType"],#simulador label[for="coverage"],#simulador label[for="panelPower"],#simulador label[for="losses"],#simulador label[for="connection"]{font-size:0}
+#simulador label[for="roofArea"]::before,#simulador label[for="roofType"]::before,#simulador label[for="coverage"]::before,#simulador label[for="panelPower"]::before,#simulador label[for="losses"]::before,#simulador label[for="connection"]::before{font-size:.86rem;line-height:1.3;font-weight:700;color:var(--ink)}
+#simulador label[for="roofArea"]::before{content:'Área disponível no telhado'}
+#simulador label[for="roofType"]::before{content:'Tipo de telhado'}
+#simulador label[for="coverage"]::before{content:'Quanto do consumo quer atender?'}
+#simulador label[for="panelPower"]::before{content:'Potência do painel'}
+#simulador label[for="losses"]::before{content:'Ajuste técnico de perdas'}
+#simulador label[for="connection"]::before{content:'Ligação elétrica do imóvel'}
+
 /* V2 density and hierarchy */
 #simulador.v2-calc{padding-top:88px;padding-bottom:88px}
 #simulador .v2-calc-intro{margin-bottom:42px}
