@@ -9,7 +9,7 @@ async function assertCompactAccessibleHelp(p,locator,label){
 async function pseudoContent(locator){return locator.evaluate(el=>getComputedStyle(el,'::before').content.replace(/^['"]|['"]$/g,''))}
 const browser=await chromium.launch({headless:true})
 try{
-  // Cenário 1 — cliente leigo na V1 encontra ajuda sem poluir os cards-resumo.
+  // Cenário 1 — cliente leigo na V1 informa seu consumo, encontra ajuda e avança sem poluição visual.
   {
     const p=await browser.newPage({viewport:{width:393,height:852}})
     await p.goto('http://127.0.0.1:4173/robsun/',{waitUntil:'domcontentloaded'})
@@ -19,6 +19,7 @@ try{
     assert(await helps.count()>=2,'V1: poucos pontos de ajuda visíveis')
     await assertCompactAccessibleHelp(p,helps.first(),'V1')
     assert(await p.locator('#simulador .compact-metrics .robsun-info').count()===0,'V1: cards-resumo ficaram poluídos com ícones de ajuda')
+    await p.locator('#consumption').fill('650')
     await helps.first().click()
     assert((await p.locator('.robsun-help-dialog').textContent()).includes('Exemplo:'),'V1: ajuda sem exemplo simples')
     await p.getByRole('button',{name:'Fechar explicação'}).click()
