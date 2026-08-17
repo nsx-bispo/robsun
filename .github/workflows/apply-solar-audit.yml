@@ -1,0 +1,59 @@
+name: Apply audited solar calculator model
+on:
+  push:
+    paths: ['.github/workflows/apply-solar-audit.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Wire audited model into calculator
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/app-v7.jsx')
+          s=p.read_text()
+
+          if "import { calculateSolar } from './solar-model.js'" not in s:
+              s=s.replace("import './app-v7.css'", "import './app-v7.css'\nimport { calculateSolar } from './solar-model.js'")
+
+          s=s.replace("model=useMemo(()=>calculate(values),[values])", "model=useMemo(()=>calculateSolar(values),[values])")
+
+          s=s.replace(
+              "coverage:95,panelPower:585,tilt:20,losses:14,connection:'bi',gdRule:'new2026',selfConsumption:30,fioBShare:28",
+              "coverage:100,margin:0,panelPower:585,tilt:20,losses:14,connection:'bi',gdRule:'new2026',selfConsumption:30,fioBShare:28,fixedCharges:0"
+          )
+
+          s=s.replace(
+              "<p>Meta de geração: {Math.round(model.target*100)}% do consumo projetado</p>",
+              "<p>{values.coverage===100?(values.margin>0?`Dimensionado para seu consumo, com ${values.margin}% de folga`:'Dimensionado para atender ao seu consumo'):(values.margin>0?`Base de cálculo: ${values.coverage}% do consumo + ${values.margin}% de folga`:`Dimensionado para ${values.coverage}% do consumo`)}</p>"
+          )
+
+          coverage='''<div className="field"><div className="range-head"><label htmlFor="coverage">Quanto do consumo você quer gerar?</label><strong>{values.coverage}%</strong></div><input id="coverage" type="range" min="50" max="100" value={values.coverage} onChange={e=>patch({coverage:Number(e.target.value)})}/></div>'''
+          margin='''<div className="field"><label>Quer adicionar uma folga ao dimensionamento?</label><p>Opcional. Ajuda a absorver pequenas variações e crescimento não previsto sem tratar energia excedente como objetivo.</p><ChoiceGroup id="margin" value={values.margin} options={[[0,'Sem folga'],[5,'+5%'],[10,'+10%'],[15,'+15%']]} onChange={margin=>patch({margin})}/></div>'''
+          if margin not in s:
+              s=s.replace(coverage, coverage+margin)
+
+          s=s.replace(
+              '<p>Nesta versão, a estimativa solar usa a referência média do estado.</p>',
+              '<p>A pré-análise usa uma referência solar conservadora por estado. O projeto final usa a localização exata do imóvel.</p>'
+          )
+
+          connection='''<div className="field"><label htmlFor="connection">Ligação da unidade</label><select id="connection" value={values.connection} onChange={e=>patch({connection:e.target.value})}><option value="mono">Monofásica</option><option value="bi">Bifásica</option><option value="tri">Trifásica</option></select></div>'''
+          fixed='''<div className="field"><label htmlFor="fixedCharges">Encargos fixos não compensáveis</label><p>Opcional: iluminação pública, serviços e cobranças que não são energia.</p><div className="input-group money"><span>R$</span><FormattedIntegerInput id="fixedCharges" value={values.fixedCharges} max={5000} label="Encargos fixos não compensáveis" onChange={fixedCharges=>patch({fixedCharges})}/><small>/mês</small></div></div>'''
+          if fixed not in s:
+              s=s.replace(connection, connection+fixed)
+
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app-v7.jsx
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m "Use audited solar calculator model"
+            git push
+          fi
