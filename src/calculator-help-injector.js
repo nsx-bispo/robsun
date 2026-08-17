@@ -16,6 +16,8 @@ const COPY_MAP=new Map([
  ['Payback simples','Retorno estimado'],
 ])
 
+const ACCESSIBLE_COPY={roofArea:'Área disponível no telhado',roofType:'Tipo de telhado',coverage:'Quanto do consumo quer atender?',panelPower:'Potência do painel',losses:'Ajuste técnico de perdas',connection:'Ligação elétrica do imóvel'}
+
 const style=document.createElement('style')
 style.textContent=`
 .robsun-help-target{display:inline-flex;align-items:center;position:relative;padding-right:28px;flex-wrap:nowrap}
@@ -40,23 +42,14 @@ dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()})
 function openHelp(key){const item=CALCULATOR_HELP[key];if(!item)return;dialog.querySelector('h3').textContent=item.title;dialog.querySelector('.robsun-help-what').textContent=item.what;dialog.querySelector('.robsun-help-why').innerHTML=`<b>Por que isso importa:</b> ${item.why}`;dialog.querySelector('.robsun-help-example').innerHTML=`<b>Exemplo:</b> ${item.example}`;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','')}
 function normalize(text){return(text||'').replace(/\s+/g,' ').trim()}
 function ownText(el){return normalize([...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' '))}
-function setOwnText(el,text){
- const nodes=[...el.childNodes].filter(n=>n.nodeType===3)
- if(nodes.length){nodes[0].textContent=text;for(const n of nodes.slice(1))n.textContent=''}
- else el.insertBefore(document.createTextNode(text),el.firstChild)
-}
+function setOwnText(el,text){const nodes=[...el.childNodes].filter(n=>n.nodeType===3);if(nodes.length){nodes[0].textContent=text;for(const n of nodes.slice(1))n.textContent=''}else el.insertBefore(document.createTextNode(text),el.firstChild)}
 function matchKey(text){const clean=normalize(text);for(const[key,re]of RULES)if(re.test(clean))return key;return null}
 function polishCopy(root){
  const labels=root.querySelectorAll('.field>label,.range-head label,.result-grid article>span')
- for(const el of labels){
-  const clean=ownText(el)||normalize(el.textContent)
-  const replacement=COPY_MAP.get(clean)
-  if(replacement&&clean!==replacement)setOwnText(el,replacement)
- }
+ for(const el of labels){const clean=ownText(el)||normalize(el.textContent);const replacement=COPY_MAP.get(clean);if(replacement&&clean!==replacement)setOwnText(el,replacement)}
+ for(const[id,label]of Object.entries(ACCESSIBLE_COPY)){const control=root.querySelector(`#${id}`);if(control)control.setAttribute('aria-label',label)}
  const v2Toggle=root.querySelector('.v2-details-toggle')
- if(v2Toggle&&!root.querySelector('.v2-calc-start.tertiary')){
-  const section=document.createElement('div');section.className='v2-calc-start tertiary';section.innerHTML='<strong>3. Refine se quiser</strong><span>Os próximos campos são opcionais. Use-os apenas se você já souber as respostas.</span>';v2Toggle.before(section)
- }
+ if(v2Toggle&&!root.querySelector('.v2-calc-start.tertiary')){const section=document.createElement('div');section.className='v2-calc-start tertiary';section.innerHTML='<strong>3. Refine se quiser</strong><span>Os próximos campos são opcionais. Use-os apenas se você já souber as respostas.</span>';v2Toggle.before(section)}
 }
 function inject(){
  const root=document.querySelector('#simulador');if(!root)return
