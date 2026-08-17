@@ -18,15 +18,14 @@ const COPY_MAP=new Map([
 
 const style=document.createElement('style')
 style.textContent=`
-.robsun-help-target{display:inline-flex;align-items:center;gap:5px;flex-wrap:nowrap}
-.robsun-info{appearance:none;position:relative;border:1px solid rgba(18,63,43,.24);background:rgba(255,255,255,.74);color:#165b3d;width:23px;height:23px;min-width:23px;border-radius:50%;display:inline-grid;place-items:center;font:700 11px/1 system-ui;cursor:pointer;padding:0;vertical-align:middle;opacity:.84;transition:.16s ease}
-.robsun-info:after{content:'';position:absolute;inset:-9px;border-radius:50%}
-.robsun-info:hover{background:#eef7f1;opacity:1;transform:translateY(-1px)}
-.robsun-info:focus-visible{outline:3px solid rgba(31,108,75,.22);outline-offset:3px;opacity:1}
+.robsun-help-target{display:inline-flex;align-items:center;position:relative;padding-right:28px;flex-wrap:nowrap}
+.robsun-info{appearance:none;position:absolute;right:-7px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#165b3d;width:44px;height:44px;min-width:44px;border-radius:50%;display:grid;place-items:center;font-size:0;cursor:pointer;padding:0;vertical-align:middle;opacity:.88;z-index:2}
+.robsun-info:before{content:'i';width:23px;height:23px;border:1px solid rgba(18,63,43,.24);background:rgba(255,255,255,.78);border-radius:50%;display:grid;place-items:center;font:700 11px/1 system-ui;transition:.16s ease}
+.robsun-info:hover{opacity:1}.robsun-info:hover:before{background:#eef7f1;transform:translateY(-1px)}
+.robsun-info:focus-visible{outline:0;opacity:1}.robsun-info:focus-visible:before{outline:3px solid rgba(31,108,75,.22);outline-offset:3px}
 .robsun-help-dialog{border:0;border-radius:18px;padding:0;max-width:460px;width:min(460px,calc(100vw - 32px));box-shadow:0 24px 70px rgba(0,0,0,.24);color:#14251d}
 .robsun-help-dialog::backdrop{background:rgba(7,18,13,.48);backdrop-filter:blur(2px)}
-.robsun-help-box{padding:23px}.robsun-help-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.robsun-help-top h3{font:700 21px/1.18 Manrope,system-ui,sans-serif;margin:0;max-width:350px}.robsun-help-close{border:0;background:#eef2ee;width:38px;height:38px;min-width:38px;border-radius:50%;font-size:19px;cursor:pointer;flex:0 0 auto}.robsun-help-box p{font:400 14px/1.58 DM Sans,Inter,system-ui,sans-serif;color:#4a5a52;margin:14px 0 0}.robsun-help-box b{color:#14251d}.robsun-help-example{margin-top:16px;padding:13px 14px;background:#f3f6f2;border-left:3px solid #2f8a63;font-size:13px;line-height:1.52;color:#425149}
-.robsun-help-hint{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:#426456;font:600 12px/1.2 DM Sans,Inter,system-ui,sans-serif;padding:8px 0;cursor:pointer}.robsun-help-hint:before{content:'i';width:19px;height:19px;border:1px solid rgba(18,63,43,.22);border-radius:50%;display:grid;place-items:center;font:700 10px/1 system-ui}
+.robsun-help-box{padding:23px}.robsun-help-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.robsun-help-top h3{font:700 21px/1.18 Manrope,system-ui,sans-serif;margin:0;max-width:350px}.robsun-help-close{border:0;background:#eef2ee;width:44px;height:44px;min-width:44px;border-radius:50%;font-size:19px;cursor:pointer;flex:0 0 auto}.robsun-help-box p{font:400 14px/1.58 DM Sans,Inter,system-ui,sans-serif;color:#4a5a52;margin:14px 0 0}.robsun-help-box b{color:#14251d}.robsun-help-example{margin-top:16px;padding:13px 14px;background:#f3f6f2;border-left:3px solid #2f8a63;font-size:13px;line-height:1.52;color:#425149}
 @media(max-width:600px){.robsun-help-dialog{position:fixed;inset:auto 8px 8px;width:calc(100vw - 16px);max-width:none;margin:0;border-radius:20px 20px 14px 14px}.robsun-help-box{padding:20px}.robsun-help-top h3{font-size:19px}.robsun-help-dialog::backdrop{background:rgba(7,18,13,.43)}}
 `
 document.head.appendChild(style)
@@ -56,7 +55,6 @@ function polishCopy(root){
 function inject(){
  const root=document.querySelector('#simulador');if(!root)return
  polishCopy(root)
- // Help stays on field labels and selected detailed outputs. Compact summary cards remain intentionally clean.
  const candidates=root.querySelectorAll('.v2-field>span,.field>label,.range-head label,.result-hero>span,.result-grid article>span,.v2-result-term')
  for(const el of candidates){if(el.dataset.robsunHelpBound==='1')continue;const key=matchKey(el.textContent);if(!key)continue;el.dataset.robsunHelpBound='1';el.classList.add('robsun-help-target');const btn=document.createElement('button');btn.type='button';btn.className='robsun-info';btn.textContent='i';btn.setAttribute('aria-label',`Entenda: ${CALCULATOR_HELP[key].title}`);btn.dataset.helpKey=key;btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHelp(key)});el.appendChild(btn)}
 }
