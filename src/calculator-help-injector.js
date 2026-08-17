@@ -38,14 +38,20 @@ dialog.querySelector('.robsun-help-close').addEventListener('click',()=>dialog.c
 dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()})
 
 function openHelp(key){const item=CALCULATOR_HELP[key];if(!item)return;dialog.querySelector('h3').textContent=item.title;dialog.querySelector('.robsun-help-what').textContent=item.what;dialog.querySelector('.robsun-help-why').innerHTML=`<b>Por que isso importa:</b> ${item.why}`;dialog.querySelector('.robsun-help-example').innerHTML=`<b>Exemplo:</b> ${item.example}`;if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','')}
-function matchKey(text){const clean=(text||'').replace(/\s+/g,' ').trim();for(const[key,re]of RULES)if(re.test(clean))return key;return null}
+function normalize(text){return(text||'').replace(/\s+/g,' ').trim()}
+function ownText(el){return normalize([...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' '))}
+function setOwnText(el,text){
+ const nodes=[...el.childNodes].filter(n=>n.nodeType===3)
+ if(nodes.length){nodes[0].textContent=text;for(const n of nodes.slice(1))n.textContent=''}
+ else el.insertBefore(document.createTextNode(text),el.firstChild)
+}
+function matchKey(text){const clean=normalize(text);for(const[key,re]of RULES)if(re.test(clean))return key;return null}
 function polishCopy(root){
  const labels=root.querySelectorAll('.field>label,.range-head label,.result-grid article>span')
  for(const el of labels){
-  if(el.querySelector('.robsun-info'))continue
-  const clean=(el.textContent||'').replace(/\s+/g,' ').trim()
+  const clean=ownText(el)||normalize(el.textContent)
   const replacement=COPY_MAP.get(clean)
-  if(replacement)el.textContent=replacement
+  if(replacement&&clean!==replacement)setOwnText(el,replacement)
  }
  const v2Toggle=root.querySelector('.v2-details-toggle')
  if(v2Toggle&&!root.querySelector('.v2-calc-start.tertiary')){
@@ -56,6 +62,9 @@ function inject(){
  const root=document.querySelector('#simulador');if(!root)return
  polishCopy(root)
  const candidates=root.querySelectorAll('.v2-field>span,.field>label,.range-head label,.result-hero>span,.result-grid article>span,.v2-result-term')
- for(const el of candidates){if(el.dataset.robsunHelpBound==='1')continue;const key=matchKey(el.textContent);if(!key)continue;el.dataset.robsunHelpBound='1';el.classList.add('robsun-help-target');const btn=document.createElement('button');btn.type='button';btn.className='robsun-info';btn.textContent='i';btn.setAttribute('aria-label',`Entenda: ${CALCULATOR_HELP[key].title}`);btn.dataset.helpKey=key;btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHelp(key)});el.appendChild(btn)}
+ for(const el of candidates){if(el.dataset.robsunHelpBound==='1')continue;const key=matchKey(ownText(el)||el.textContent);if(!key)continue;el.dataset.robsunHelpBound='1';el.classList.add('robsun-help-target');const btn=document.createElement('button');btn.type='button';btn.className='robsun-info';btn.textContent='i';btn.setAttribute('aria-label',`Entenda: ${CALCULATOR_HELP[key].title}`);btn.dataset.helpKey=key;btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openHelp(key)});el.appendChild(btn)}
 }
-let scheduled=false;const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;inject()})};new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);else schedule()
+let scheduled=false
+const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;inject()})}
+new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,characterData:true})
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule);else schedule()
